@@ -3,10 +3,10 @@ class DB extends SQLite3{
 
     public static $db_filename = "./database.db";
 
-    function __construct(){
+    function __construct($db_filename='../database.db'){
         // Create the DB file if it doesn't exist
         $this->open(
-            DB::$db_filename,
+            $db_filename,
             $flags=SQLITE3_OPEN_READWRITE|SQLITE3_OPEN_CREATE
         );
     }

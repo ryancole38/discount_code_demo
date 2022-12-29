@@ -14,6 +14,8 @@
         /* UNUSED: The primary key of the entry in this table by which this entry is updated.
            No value indicates that this has not been updated. */
         public $updatedBy;
+        /* The date that this record was added to the database. */
+        public $dateCreated;
         /* Indicates that this entry has been deleted and should not be displayed to the user. */
         public $isDeleted;
         
@@ -31,10 +33,11 @@
 
         private static $createTableQuery = <<<EOF
         CREATE TABLE DiscountCode(
-            Id                  INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+            id                  INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
             artistId            INTEGER NOT NULL,
             merchTypeId         INTEGER NOT NULL,
             updatedById         INTEGER,
+            dateCreated         TEXT NOT NULL,
             isDeleted           INTEGER,
             codeString          TEXT NOT NULL,
             discountMessage     TEXT,
@@ -54,6 +57,7 @@
             artistId,
             merchTypeId,
             updatedById,
+            dateCreated,
             isDeleted,
             codeString,
             discountMessage,
@@ -70,6 +74,7 @@
             :artistId,
             :merchTypeId,
             :updatedById,
+            :dateCreated,
             :isDeleted,
             :codeString,
             :discountMessage,
@@ -84,15 +89,29 @@
         );
         EOF;
 
+        private static $selectByArtistIdQuery = <<<EOF
+        SELECT * FROM DiscountCode
+        WHERE artistId = :artistId;
+        EOF;
+
+        private static $selectByArtistIdAndCodeStringQuery = <<<EOF
+        SELECT * FROM DiscountCode
+        WHERE 
+            artistId = :artistId 
+            AND codeString = :codeString;
+        EOF;
+
         private static $updateQuery = <<<EOF
         UPDATE DiscountCode
-        WHERE Id = :id
+        WHERE Id = :id;
         EOF;
 
         function __construct() {
             $this->id = 0;
+            $this->artistId = 0;
             $this->merchTypeId = 0;
             $this->updatedById = 0;
+            $this->dateCreated = '';
             $this->isDeleted = false;
             $this->codeString = '';
             $this->discountMessage = '';
@@ -105,6 +124,38 @@
             $this->isStackable = false;
             $this->minimumOrderAmount = 0;
         }
+
+        public function isActive() {
+            return true;
+        }
+
+        public static function getAllByArtistId($conn, $artistId) {
+            $statement = $conn->prepare(DiscountCode::$selectByArtistIdQuery);
+            
+            $statement->bindValue(':artistId', $artistId);
+
+            $result = $statement->execute();
+            // TODO: figure out how to check if there's an error that's not
+            // the same as there being no results
+            $codes = [];
+            while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+                $codes[] = DiscountCode::constructFromRow($row);
+            }
+
+            return $codes;
+        }
+
+        public static function getCodeByArtistAndCode($conn, $artistId, $codeString) {
+            $statement = $conn->prepare(DiscountCode::$selectByArtistIdAndCodeStringQuery);
+
+            $statement->bindValue(':artistId', $artistId);
+            $statement->bindValue(':codeString', $codeString);
+
+            $result = $statement->execute();
+            // TODO: check for error
+
+            return DiscountCode::constructFromRow($result->fetchArray(SQLITE3_ASSOC));
+        } 
 
         public static function createTable($conn) {
             // For some reason, if `DROP TABLE` is included as part of the table creation,
@@ -129,12 +180,16 @@
             if (!$this->isValid()) {
                 return false;
             }
-           
+
             $statement = $conn->prepare(DiscountCode::$insertIntoQuery);
 
             $this->bindInstanceToPreparedStatement($statement);
 
             $result = $statement->execute();
+
+            if (!$result) {
+                echo $conn->lastErrorMsg();
+            }
 
             return $result;
         }
@@ -162,11 +217,35 @@
             return $result;
         }
 
+        private static function constructFromRow($row) {
+            $code = new DiscountCode();
+
+            $code->id = $row['id'];
+            $code->artistId = $row['artistId'];
+            $code->merchTypeId = $row['merchTypeId'];
+            $code->updatedById = $row['updatedById'];
+            $code->dateCreated = $row['dateCreated'];
+            $code->isDeleted = $row['isDeleted'];
+            $code->codeString = $row['codeString'];
+            $code->discountMessage = $row['discountMessage'];
+            $code->startDate = $row['startDate'];
+            $code->endDate = $row['endDate'];
+            $code->isPercentage = $row['isPercentage'];
+            $code->discountAmount = $row['discountAmount'];
+            $code->timesRedeemable = $row['timesRedeemable'];
+            $code->userCanReuse = $row['userCanReuse'];
+            $code->isStackable = $row['isStackable'];
+            $code->minimumOrderAmount = $row['minimumOrderAmount'];
+
+            return $code;
+        }
+
         private function bindInstanceToPreparedStatement($statement) {
 
             $statement->bindValue(':artistId', $this->artistId, SQLITE3_INTEGER);
             $statement->bindValue(':merchTypeId', $this->merchTypeId, SQLITE3_INTEGER);
             $statement->bindValue(':updatedById', $this->updatedById, SQLITE3_INTEGER);
+            $statement->bindValue(':dateCreated', $this->dateCreated, SQLITE3_TEXT);
             $statement->bindValue(':isDeleted', DB::boolToInt($this->isDeleted), SQLITE3_INTEGER);
             $statement->bindValue(':codeString', $this->codeString, SQLITE3_TEXT);
             $statement->bindValue(':discountMessage', $this->discountMessage, SQLITE3_TEXT);

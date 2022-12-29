@@ -35,6 +35,12 @@ class User {
     ;
     EOF;
 
+    private static $selectByIdQuery = <<<EOF
+    SELECT * FROM USER
+    WHERE
+    ID = :id;
+    EOF;
+
     function __construct() {
         $this->id = -1;
         $this->username = '';
@@ -71,8 +77,17 @@ class User {
 
     }
 
+    public static function getById($conn, $id) {
+        $statement = $conn->prepare(User::$selectByIdQuery);
+        $statement->bindValue(':id', $id, SQLITE3_INTEGER);
+
+        $result = $statement->execute();
+        $row = $result->fetchArray(SQLITE3_ASSOC);
+
+        return User::constructFromRow($row);
+    }
+
     public static function getByUsername($conn, $username) {
-        // TODO: check that $conn is valid
 
         $statement = $conn->prepare(User::$selectByUsernameQuery);
         if (!$statement) {
@@ -102,12 +117,7 @@ class User {
         echo var_dump($row);
 
         // we only fetch the first. if more than one exist, that's not my problem.
-        $user = new User();
-        $user->id = $row['ID'];
-        $user->username = $row['USERNAME'];
-        $user->isArtist = DB::intToBool($row['ISARTIST']);
-
-        return $user;
+        return User::constructFromRow($row); 
 
     }
 
@@ -115,6 +125,15 @@ class User {
     public static function createTable($conn) {
         $conn->query(User::$createTableQuery);
         // TODO: Check that query executed
+    }
+
+    public static function constructFromRow($row) {
+        $user = new User();
+        $user->id = $row['ID'];
+        $user->username = $row['USERNAME'];
+        $user->isArtist = DB::intToBool($row['ISARTIST']);
+
+        return $user;
     }
 
 }
