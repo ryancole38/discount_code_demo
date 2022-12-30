@@ -7,7 +7,6 @@ class User {
     public $isArtist;
 
     private static $createTableQuery = <<<EOF
-    DROP TABLE IF EXISTS USER;
     CREATE TABLE USER(
         ID              INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
         USERNAME        TEXT NOT NULL,
@@ -31,14 +30,17 @@ class User {
     private static $selectByUsernameQuery = <<<EOF
     SELECT * FROM USER
     WHERE
-    USERNAME = :username
-    ;
+    USERNAME = :username;
     EOF;
 
     private static $selectByIdQuery = <<<EOF
     SELECT * FROM USER
     WHERE
     ID = :id;
+    EOF;
+
+    private static $selectAllQuery = <<<EOF
+    SELECT * FROM USER;
     EOF;
 
     function __construct() {
@@ -74,7 +76,13 @@ class User {
     }
 
     public static function getAll($conn) {
+        $results = $conn->query(User::$selectAllQuery);
+        $users = [];
+        while($row = $results->fetchArray(SQLITE3_ASSOC)) {
+            $users[] = User::constructFromRow($row);
+        }
 
+        return $users;
     }
 
     public static function getById($conn, $id) {
@@ -93,6 +101,7 @@ class User {
         if (!$statement) {
             return null;
         }
+        echo $username;
 
         $bind_success = $statement->bindValue(':username', $username, SQLITE3_TEXT);
         if (!$bind_success) {
@@ -107,10 +116,16 @@ class User {
             return null;
         }
 
+        echo var_dump($result);
+
         $row = $result->fetchArray(SQLITE3_ASSOC);
+
+        echo var_dump($statement);
 
         if (!$row) {
             echo 'ERROR: Failed to retrieve user';
+            echo $conn->lastErrorMsg();
+            echo $row;
             return null;
         }
 
@@ -123,8 +138,11 @@ class User {
 
     // Create a table in the database for this model
     public static function createTable($conn) {
-        $conn->query(User::$createTableQuery);
-        // TODO: Check that query executed
+        // Drop table before creating new one
+        $conn->query('DROP TABLE IF EXISTS USER;');
+
+        // create the table
+        return $conn->query(User::$createTableQuery);
     }
 
     public static function constructFromRow($row) {

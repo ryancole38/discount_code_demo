@@ -3,6 +3,7 @@ require_once('./router.php');
 require_once('./module/db.php');
 require_once('./controller/discount_codes.php');
 require_once('./controller/code_detail.php');
+require_once('./controller/checkout.php');
 require_once('./controller/login.php');
 
 $router = new Router();
@@ -20,6 +21,11 @@ $router->addRoute('/discount_codes/admin', function() {
 $router->addRoute('/discount_codes/code', function($args) {
     $page = new CodeDetailController($args);
     $page->renderView();
+});
+
+$router->addRoute('/checkout', function() {
+    $page = new CheckoutController();
+    $page->handle();
 });
 
 $router->addRoute('/login', function() {

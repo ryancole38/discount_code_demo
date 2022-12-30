@@ -1,9 +1,10 @@
 <?php
 
+    require_once('./controller/abc_page.php');
     require_once('./module/db.php');
     require_once('./model/user.php');
 
-    class LoginController {
+    class LoginController extends ABCPage {
 
         function __construct() {
             $this->error = '';
@@ -18,11 +19,9 @@
                 $this->error = 'Login successful';
                 if ($user->isArtist) {
                     setcookie('user_id', strval($user->id));
-                    header('Location: http://localhost:8000/discount_codes');
-                    exit();
+                    $this->redirectTo('/discount_codes/admin');
                 }
-                header('Location: http://localhost:8000/cart');
-                exit();
+                $this->redirectTo('/checkout');
             }
 
         }
