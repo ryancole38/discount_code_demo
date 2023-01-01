@@ -46,7 +46,7 @@ abstract class ABCPage {
 
     public function renderBasePage($title, $headerText, $content, $backLink) {
         require_once('./view/abc_page.php');
-        echo render($title, $headerText, $content, $this->isLoggedIn(), $backLink);
+        echo ABCPageView::render($title, $headerText, $content, $this->isLoggedIn(), $backLink);
     }
 
 }

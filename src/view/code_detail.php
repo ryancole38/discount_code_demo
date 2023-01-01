@@ -1,8 +1,12 @@
 <?php
+class CodeDetailView {
 
+    function __construct($code){
+        $this->code = $code;
+    }
+
+    function getView() {
+        return $this->code->codeString;
+    }
+}
 ?>
-<!DOCTYPE html>
-<html lang="en">
-    <head></head>
-    <body></body>
-</html>

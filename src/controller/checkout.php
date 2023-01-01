@@ -21,14 +21,14 @@ class CheckoutController extends ABCPage {
     }
 
     public function handleAsync() {
-            $router = new Router();
+        $router = new Router();
 
-            $router->addRoute('/applydiscount', function() {
-                echo 'discount';
-            });
+        $router->addRoute('/applydiscount', function() {
+            echo 'discount';
+        });
 
-            $router->run($this->matches[1]);
-            exit();
+        $router->run($this->matches[1]);
+        exit();
 
     }
 
@@ -38,6 +38,10 @@ class CheckoutController extends ABCPage {
         }
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             require_once('./view/checkout.php');
+            $view = new CheckoutView($this->cart);
+            $contents = $view->getView();
+            
+            $this->renderBasePage('Checkout', 'Review Order', $contents, null);
         }
     }
 

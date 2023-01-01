@@ -31,12 +31,15 @@ class CodeDetailController extends ABCPage {
             exit();
         }
 
-        var_dump($discount_code);
+        $this->discount_code = $discount_code;
 
     }
 
     public function renderView() {
         require_once('./view/code_detail.php');
+        $view = new CodeDetailView($this->discount_code);
+        $content = $view->getView();
+        $this->renderBasePage('Code Details', 'Code Details', $content, '/discount_codes/admin');
     }
 
 }

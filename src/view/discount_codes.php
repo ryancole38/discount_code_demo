@@ -1,6 +1,20 @@
 <?php
+require_once('./view/abc_page.php');
+
 function getView($codes) {
-    return renderCodesAsTable($codes);
+    ob_start();
+    ?>
+    <?php 
+    
+        echo renderCodesAsTable($codes);
+        echo ABCPageView::renderLink(
+            'Create Discount Code', 
+            '/discount_codes/create'
+        );
+    ?>
+
+    <?php
+    return ob_get_clean();
 }
 
 function renderCodesAsTable($codes) {

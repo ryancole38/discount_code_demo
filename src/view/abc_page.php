@@ -1,23 +1,25 @@
 <?php
 
-function renderLink($text, $link) {
-    return sprintf('<a href="http://%s%s">%s</a>',
-        $_SERVER['HTTP_HOST'],
-        $link,
-        $text 
-    );
-}
+class ABCPageView {
 
-function getLogInOrLogOutLink($isLoggedIn) {
-    if($isLoggedIn) {
-        return renderLink('Log out', '/login?action=logout');
+    static function renderLink($text, $link) {
+        return sprintf('<a href="http://%s%s">%s</a>',
+            $_SERVER['HTTP_HOST'],
+            $link,
+            $text 
+        );
     }
-    return renderLink('Log In', '/login');
-}
 
-function render($title, $headerText, $content, $loggedIn, $backLink='') {
-    ob_start();
-    ?>
+    static function getLogInOrLogOutLink($isLoggedIn) {
+        if($isLoggedIn) {
+            return ABCPageView::renderLink('Log out', '/login?action=logout');
+        }
+        return ABCPageView::renderLink('Log In', '/login');
+    }
+
+    static function render($title, $headerText, $content, $loggedIn, $backLink='') {
+        ob_start();
+        ?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -29,10 +31,20 @@ function render($title, $headerText, $content, $loggedIn, $backLink='') {
         <header>
             <div id='nav-bar'>
                 <ul>
-                    <li>Hello, world</li>
+                    <li><?php echo ABCPageView::renderLink('Home', '/'); ?></li>
                 </ul>
                 <ul>
-                    <li><?php echo getLoginOrLogOutLink($loggedIn)?></li>
+                    <li><?php echo ABCPageView::renderLink('Merch', '/'); ?><li>
+                </ul>
+                <ul>
+                    <li class="nav-right">
+                        <?php echo ABCPageView::getLoginOrLogOutLink($loggedIn)?>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="nav-right">
+                        <?php echo ABCPageView::renderLink('Cart', '/checkout'); ?>
+                    </li>
                 </ul>
             </div>
         </header>
@@ -42,7 +54,7 @@ function render($title, $headerText, $content, $loggedIn, $backLink='') {
                     <h2><?php echo $headerText; ?></h2>
                     <?php
                     if (!empty($backLink)) {
-                        echo renderLink('<< Back', $backLink);
+                        echo ABCPageView::renderLink('<< Back', $backLink);
                     }
                     ?>
                     </br></br>
@@ -51,10 +63,18 @@ function render($title, $headerText, $content, $loggedIn, $backLink='') {
             </div>
         </div>
     </body>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" src="static/js/checkout.js"></script>
 </html> 
 
-    <?php
-    return ob_get_clean();
+        <?php
+        return ob_get_clean();
+    }
 }
+
+
+
+
+
 
 ?>
