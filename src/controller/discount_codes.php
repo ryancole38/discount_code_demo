@@ -20,6 +20,13 @@
 
         function renderView() {
             require_once('./view/discount_codes.php');
+            $view = getView($this->discountCodes);
+            $this->renderBasePage(
+                sprintf("%s's Discount Codes", $this->artist->username),
+                'Codes',
+                $view,
+                null
+            );
         }
 
         

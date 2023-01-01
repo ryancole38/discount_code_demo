@@ -3,6 +3,7 @@ require_once('./router.php');
 require_once('./module/db.php');
 require_once('./controller/discount_codes.php');
 require_once('./controller/code_detail.php');
+require_once('./controller/discount_creation.php');
 require_once('./controller/checkout.php');
 require_once('./controller/login.php');
 
@@ -23,14 +24,19 @@ $router->addRoute('/discount_codes/code', function($args) {
     $page->renderView();
 });
 
-$router->addRoute('/checkout', function() {
-    $page = new CheckoutController();
+$router->addRoute('/discount_codes/create', function($args) {
+    $page = new DiscountCreationController();
+    $page->renderView();
+});
+
+$router->addRoute('/checkout(/[a-zA-Z]+)?', function($args, $matches) {
+    $page = new CheckoutController($matches);
     $page->handle();
 });
 
-$router->addRoute('/login', function() {
+$router->addRoute('/login', function($args) {
     $page = new LoginController();
-    $page->renderView();
+    $page->handle($args);
 });
 
 $router->run();

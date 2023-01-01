@@ -1,6 +1,11 @@
 <?php
+function getView($codes) {
+    return renderCodesAsTable($codes);
+}
+
 function renderCodesAsTable($codes) {
-    echo <<<EOF
+    ob_start();
+    ?>
     <table>
     <th>
         <td>Discount Code</td>
@@ -8,7 +13,7 @@ function renderCodesAsTable($codes) {
         <td>Discount Amount</td>
         <td>Active</td>
     </th>
-    EOF;
+    <?php
     foreach ($codes as $code) {
         printf('<tr><td><a href=\'%s\'>%s</a></td><td>%s</td><td>%s</td><td>%s</td></tr>',
             getDiscountCodeLink($code),
@@ -18,7 +23,10 @@ function renderCodesAsTable($codes) {
             $code->isActive() ? 'Yes' : 'No'
         );
     }
-    echo '</table>';
+    ?>
+    </table>
+    <?php
+    return ob_get_clean();
 }
 
 function getDiscountCodeLink($code) {
@@ -28,15 +36,3 @@ function getDiscountCodeLink($code) {
     );
 }
 ?>
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <title><?php echo $this->artist->username?>'s Discount Codes</title>
-    </head>
-    <body>
-    <?php
-    renderCodesAsTable($this->discountCodes);
-    echo var_dump($this->artist);
-    ?>
-    </body>
-</html>

@@ -11,6 +11,10 @@ abstract class ABCPage {
 
     }
 
+    public function isLoggedIn() {
+        return $this->getLoggedInUserId() > 0;
+    }
+
     // Simple method that checks if the cookie for the user ID is set
     // and returns it.  Returns 0 if no user logged in.
     // In the real world, this should probably be a session ID for authentication.
@@ -33,6 +37,16 @@ abstract class ABCPage {
         );
         exit();
 
+    }
+
+    public function requestIsAsync() {
+        return (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+            strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
+    }
+
+    public function renderBasePage($title, $headerText, $content, $backLink) {
+        require_once('./view/abc_page.php');
+        echo render($title, $headerText, $content, $this->isLoggedIn(), $backLink);
     }
 
 }

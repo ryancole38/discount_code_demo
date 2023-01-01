@@ -18,8 +18,10 @@ class Router {
     }
 
     /* Route the requested URI to the provided routes */
-    public function run() {
-        $uri = $_SERVER['REQUEST_URI'];
+    public function run($uri='') {
+        if(empty($uri)){
+            $uri = $_SERVER['REQUEST_URI'];
+        }
         $path = parse_url($uri, PHP_URL_PATH);
         $url_params = parse_url($uri, PHP_URL_QUERY);
         $parsed_params = '';

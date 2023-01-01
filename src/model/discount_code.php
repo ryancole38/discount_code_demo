@@ -241,7 +241,6 @@
         }
 
         private function bindInstanceToPreparedStatement($statement) {
-
             $statement->bindValue(':artistId', $this->artistId, SQLITE3_INTEGER);
             $statement->bindValue(':merchTypeId', $this->merchTypeId, SQLITE3_INTEGER);
             $statement->bindValue(':updatedById', $this->updatedById, SQLITE3_INTEGER);

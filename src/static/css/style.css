@@ -1,0 +1,45 @@
+html {
+    margin: 0px;
+    height: 100%;
+    width: 100%;
+}
+
+body {
+    width: 100%;
+    min-height: 100%;
+    margin: 0px;
+    background-color: #F0F0F0F0;
+}
+
+header {
+    position: fixed;
+    height: 10%;
+    width: 100%;
+    z-index: 9999;
+    top: 0;
+    left: 0;
+    background-color: black;
+    color: white;
+}
+
+#content-container {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+#content {
+    background-color: #ffffff;
+    width: 80%;
+    height: 100%;
+    border-left: 5px solid black;
+    border-right: 5px solid black;
+}
+
+#view {
+    position: relative;
+    margin: 10px;
+    top: 100px;
+}
