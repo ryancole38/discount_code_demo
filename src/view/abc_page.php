@@ -64,7 +64,7 @@ class ABCPageView {
         </div>
     </body>
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script type="text/javascript" src="static/js/checkout.js"></script>
+    <script type="text/javascript" src="/static/js/events.js"></script>
 </html> 
 
         <?php

@@ -14,9 +14,9 @@ $router = new Router();
 // $matches: The regex matches for the provided route, that start at index 1.
 //      Index 0 is the string that matched the pattern, which is the whole route. 
 
-$router->addRoute('/discount_codes/admin', function() {
-    $page = new DiscountCodesController();
-    $page->renderView();
+$router->addRoute('/discount_codes/admin(/[a-zA-Z]+)?', function($args, $matches) {
+    $page = new DiscountCodesController($matches);
+    $page->handle();
 });
 
 $router->addRoute('/discount_codes/code', function($args) {
@@ -24,9 +24,9 @@ $router->addRoute('/discount_codes/code', function($args) {
     $page->renderView();
 });
 
-$router->addRoute('/discount_codes/create', function($args) {
-    $page = new DiscountCreationController();
-    $page->renderView();
+$router->addRoute('/discount_codes/create(/[a-zA-Z]+)?', function($args, $matches) {
+    $page = new DiscountCreationController($matches);
+    $page->handle();
 });
 
 $router->addRoute('/checkout(/[a-zA-Z]+)?', function($args, $matches) {

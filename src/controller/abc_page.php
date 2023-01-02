@@ -11,6 +11,19 @@ abstract class ABCPage {
 
     }
 
+    // In the real world where a session ID would be
+    // used rather than a user ID, you would look
+    // up the permissions of the ID rather than query
+    // the user itself.
+    public function requireArtistLogin($conn) {
+        $this->requireLogin();
+        $id = $this->getLoggedInUserId();
+        $user = User::getById($conn, $id);
+        if (!$user->isArtist) {
+            $this->redirectTo('/login');
+        }
+    }
+
     public function isLoggedIn() {
         return $this->getLoggedInUserId() > 0;
     }

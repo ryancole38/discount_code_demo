@@ -24,7 +24,7 @@
         public $discountMessage;
         public $startDate;
         public $endDate;
-        public $isPercentage;
+        public $discountType;
         public $discountAmount;
         public $timesRedeemable;
         public $userCanReuse;
@@ -43,10 +43,9 @@
             discountMessage     TEXT,
             startDate           TEXT NOT NULL,
             endDate             TEXT,
-            isPercentage        INTEGER,
+            discountType        INTEGER,
             discountAmount      REAL NOT NULL,
             timesRedeemable     INTEGER,
-            userCanReuse        INTEGER,
             isStackable         INTEGER,
             minimumOrderAmount  REAL 
         );
@@ -63,10 +62,9 @@
             discountMessage,
             startDate,
             endDate,
-            isPercentage,
+            discountType,
             discountAmount,
             timesRedeemable,
-            userCanReuse,
             isStackable,
             minimumOrderAmount
         )
@@ -80,18 +78,22 @@
             :discountMessage,
             :startDate,
             :endDate,
-            :isPercentage,
+            :discountType,
             :discountAmount,
             :timesRedeemable,
-            :userCanReuse,
             :isStackable,
             :minimumOrderAmount
         );
         EOF;
 
+        private static $selectByIdQuery = <<<EOF
+        SELECT * FROM DiscountCode
+        WHERE id = :id;
+        EOF;
+
         private static $selectByArtistIdQuery = <<<EOF
         SELECT * FROM DiscountCode
-        WHERE artistId = :artistId;
+        WHERE artistId = :artistId AND isDeleted = 0;
         EOF;
 
         private static $selectByArtistIdAndCodeStringQuery = <<<EOF
@@ -103,8 +105,31 @@
 
         private static $updateQuery = <<<EOF
         UPDATE DiscountCode
-        WHERE Id = :id;
+        SET
+            merchTypeId = :merchTypeId,
+            isDeleted = :isDeleted,
+            codeString = :codeString,
+            discountMessage = :discountMessage,
+            startDate = :startDate,
+            endDate = :endDate,
+            discountType = :discountType,
+            discountAmount = :discountAmount,
+            timesRedeemable = :timesRedeemable,
+            isStackable = :isStackable,
+            minimumOrderAmount = :minimumOrderAmount
+        WHERE id = :id;
         EOF;
+
+        private static $deleteQuery = <<<EOF
+        UPDATE DiscountCode
+        SET
+            isDeleted = 1
+        WHERE id = :id;
+        EOF;
+
+        const FLAT_DISCOUNT = 0;
+        const PERCENTAGE_DISCOUNT = 1;
+        const BOGO_DISCOUNT = 2;
 
         function __construct() {
             $this->id = 0;
@@ -117,10 +142,9 @@
             $this->discountMessage = '';
             $this->startDate = '';
             $this->endDate = '';
-            $this->isPercentage = false;
+            $this->discountType = self::FLAT_DISCOUNT;
             $this->discountAmount = 0;
             $this->timesRedeemable = 0;
-            $this->userCanReuse = false; // TODO : is this necessary? timesRedeemable could just be 0
             $this->isStackable = false;
             $this->minimumOrderAmount = 0;
         }
@@ -143,6 +167,18 @@
             }
 
             return $codes;
+        }
+
+        public static function getById($conn, $discountId) {
+            $statement = $conn->prepare(DiscountCode::$selectByIdQuery);
+
+            $statement->bindValue(':id', $discountId);
+
+            $result = $statement->execute();
+
+            $row = $result->fetchArray(SQLITE3_ASSOC);
+
+            return DiscountCode::constructFromRow($row);
         }
 
         public static function getCodeByArtistAndCode($conn, $artistId, $codeString) {
@@ -173,7 +209,7 @@
         public function commit($conn) {
             // If this already has an ID, it should be updated instead.
             if ($this->id > 0) {
-                return $this->update(); 
+                return $this->update($conn); 
             }
 
             // Can't commit: this has invalid values.
@@ -194,7 +230,7 @@
             return $result;
         }
 
-        public function update() {
+        public function update($conn) {
             
             // We must have a valid ID in order to update the record.
             if (!($this->id > 0)) {
@@ -217,6 +253,48 @@
             return $result;
         }
 
+        public function delete($conn) {
+            // Return if id is 0 since that means that no record has been
+            // created.
+            if ($this->id === 0) {
+                return;
+            }
+
+            $statement = $conn->prepare(DiscountCode::$deleteQuery);
+            $statement->bindValue(':id', $this->id, SQLITE3_INTEGER);
+
+            $result = $statement->execute();
+
+            return $result;
+        }
+
+        public static function constructFromPublicJsonValues($row) {
+
+            $code = new DiscountCode();
+
+            try {
+                $code->id = strval($row['id']);
+                $code->artistId = strval($row['artistId']);
+                $code->merchTypeId = strval($row['merchTypeId']);
+                $code->dateCreated = 0; // TODO: change to now
+                $code->codeString = $row['codeString'];
+                $code->discountMessage = $row['discountMessage'];
+                $code->startDate = $row['startDate'];
+                $code->endDate = $row['endDate'];
+                $code->discountType = $row['discountType'];
+                $code->discountAmount = strval($row['discountAmount']);
+                $code->timesRedeemable = strval($row['timesRedeemable']);
+                $code->isStackable = DB::parseBool($row['isStackable']);
+                $code->minimumOrderAmount = strval($row['minimumOrderAmount']);
+            } catch(Exception $error){
+                // TODO: log the error or something
+                $code = null;
+            }
+
+            return $code;
+
+        }
+
         private static function constructFromRow($row) {
             $code = new DiscountCode();
 
@@ -230,10 +308,9 @@
             $code->discountMessage = $row['discountMessage'];
             $code->startDate = $row['startDate'];
             $code->endDate = $row['endDate'];
-            $code->isPercentage = $row['isPercentage'];
+            $code->discountType = $row['discountType'];
             $code->discountAmount = $row['discountAmount'];
             $code->timesRedeemable = $row['timesRedeemable'];
-            $code->userCanReuse = $row['userCanReuse'];
             $code->isStackable = $row['isStackable'];
             $code->minimumOrderAmount = $row['minimumOrderAmount'];
 
@@ -250,7 +327,7 @@
             $statement->bindValue(':discountMessage', $this->discountMessage, SQLITE3_TEXT);
             $statement->bindValue(':startDate', $this->startDate, SQLITE3_TEXT);
             $statement->bindValue(':endDate', $this->endDate, SQLITE3_TEXT);
-            $statement->bindValue(':isPercentage', DB::boolToInt($this->isPercentage), SQLITE3_INTEGER);
+            $statement->bindValue(':discountType', $this->discountType, SQLITE3_INTEGER);
             $statement->bindValue(':discountAmount', $this->discountAmount, SQLITE3_FLOAT);
             $statement->bindValue(':timesRedeemable', $this->timesRedeemable, SQLITE3_INTEGER);
             $statement->bindValue(':isStackable', DB::boolToInt($this->isStackable), SQLITE3_INTEGER);

@@ -30,6 +30,17 @@ class DB extends SQLite3{
     public static function intToBool(int $value) : bool {
         return $value === 1 ? true : false;
     }
+
+    public static function parseBool(string $string) : bool {
+        if (strtolower($string) === 'true') {
+            return true;
+        }
+        if (strtolower($string) === 'false') {
+            return false;
+        }
+
+        throw new Exception('Unable to parse as boolean: '.$string);
+    }
 }
 
 ?>

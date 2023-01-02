@@ -1,12 +1,15 @@
 <?php
-class CodeDetailView {
+require_once('./view/discount_creation.php');
+class CodeDetailView extends DiscountCreationView {
 
-    function __construct($code){
-        $this->code = $code;
+    function __construct($discountCode, $artistId, $merchTypes){
+        parent::__construct($artistId, $merchTypes);
+        $this->discountCode = $discountCode;
+        $this->discountId = $discountCode->id;
     }
 
     function getView() {
-        return $this->code->codeString;
+        return parent::getView();
     }
 }
 ?>

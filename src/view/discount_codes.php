@@ -20,21 +20,31 @@ function getView($codes) {
 function renderCodesAsTable($codes) {
     ob_start();
     ?>
-    <table>
+    <table id='discount-code-table'>
     <th>
         <td>Discount Code</td>
         <td>Promo Message</td>
         <td>Discount Amount</td>
         <td>Active</td>
+        <td></td>
     </th>
     <?php
     foreach ($codes as $code) {
-        printf('<tr><td><a href=\'%s\'>%s</a></td><td>%s</td><td>%s</td><td>%s</td></tr>',
+        printf(
+            '<tr id=\'%s\'>
+                <td><a href=\'%s\'>%s</a></td>
+                <td>%s</td>
+                <td>%s</td>
+                <td>%s</td>
+                <td><button onclick="onDeleteDiscountCodeClicked(%s)">Delete</button>
+            </tr>',
+            $code->id,
             getDiscountCodeLink($code),
             $code->codeString,
             $code->discountMessage,
             $code->discountAmount,
-            $code->isActive() ? 'Yes' : 'No'
+            $code->isActive() ? 'Yes' : 'No',
+            $code->id
         );
     }
     ?>
@@ -49,4 +59,5 @@ function getDiscountCodeLink($code) {
         $code->codeString
     );
 }
+
 ?>
