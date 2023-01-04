@@ -4,8 +4,9 @@ require_once('./view/abc_page.php');
 
 class CheckoutView {
 
-    function __construct($cart){
+    function __construct($cart, $transaction){
         $this->cart = $cart;
+        $this->transaction = $transaction;
     }
 
     function renderCartAsTable() {
@@ -34,7 +35,11 @@ class CheckoutView {
         echo $this->renderCartAsTable();
         ?>
 
-        Apply discount code: <input id="discount-code" type="text"/>
+        <t>Subtotal: <?php echo $this->transaction->getSubtotal(); ?></t></br>
+        <t>Discount: <?php echo $this->transaction->getDiscount(); ?></t></br>
+        <t>Total: <?php echo $this->transaction->getTotal(); ?></t></br>
+        <label for="discount-code">Apply discount code: </label>
+        <input id="discount-code" type="text"/>
         <button onclick="onDiscountCodeApply()">Submit</button> 
 
         <?php

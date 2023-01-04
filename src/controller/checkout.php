@@ -1,7 +1,9 @@
 <?php
 
+require_once('./view/checkout.php');
 require_once('./router.php');
 require_once('./module/db.php');
+require_once('./module/transaction_processor.php');
 require_once('./controller/abc_page.php');
 require_once('./model/cart.php');
 
@@ -16,7 +18,12 @@ class CheckoutController extends ABCPage {
         $conn = new DB();
 
         $this->matches = $matches;
+        $this->discount = null;
         $this->cart = Cart::getCartByUserId($conn, $userId); 
+
+        $processor = new TransactionProcessor($this->cart, $this->discount);
+
+        $this->transaction_template = $processor->process();
 
     }
 
@@ -36,13 +43,10 @@ class CheckoutController extends ABCPage {
         if($this->requestIsAsync()){
             $this->handleAsync();
         }
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            require_once('./view/checkout.php');
-            $view = new CheckoutView($this->cart);
-            $contents = $view->getView();
-            
-            $this->renderBasePage('Checkout', 'Review Order', $contents, null);
-        }
+        $view = new CheckoutView($this->cart, $this->transaction_template);
+        $contents = $view->getView();
+        
+        $this->renderBasePage('Checkout', 'Review Order', $contents, null);
     }
 
 }
