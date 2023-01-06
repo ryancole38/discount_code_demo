@@ -9,7 +9,7 @@ class CheckoutView {
         $this->transaction = $transaction;
     }
 
-    function renderCartAsTable() {
+    function renderCart() {
         echo <<<EOF
         <table>
             <th>
@@ -31,8 +31,11 @@ class CheckoutView {
 
     function getView() {
         ob_start();
+        ?>
+    <div id='checkout-summary'>
 
-        echo $this->renderCartAsTable();
+        <?php
+        echo $this->renderCart();
         ?>
 
         <t>Subtotal: <?php echo $this->transaction->getSubtotal(); ?></t></br>
@@ -41,6 +44,7 @@ class CheckoutView {
         <label for="discount-code">Apply discount code: </label>
         <input id="discount-code" type="text"/>
         <button onclick="onDiscountCodeApply()">Submit</button> 
+    </div>
 
         <?php
         return ob_get_clean();

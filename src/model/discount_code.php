@@ -103,6 +103,12 @@
             AND codeString = :codeString;
         EOF;
 
+        private static $selectByCodeStringQuery = <<<EOF
+            SELECT * FROM DiscountCode
+            WHERE
+                codeString = :codeString;
+        EOF;
+
         private static $updateQuery = <<<EOF
         UPDATE DiscountCode
         SET
@@ -179,6 +185,15 @@
             $row = $result->fetchArray(SQLITE3_ASSOC);
 
             return DiscountCode::constructFromRow($row);
+        }
+
+        public static function getAllByCodeString($conn, $codeString) {
+            $statement = $conn->prepare(DiscountCode::$selectByCodeStringQuery);
+            $statement->bindValue(':codeString', $codeString);
+
+            $result = $statement->execute();
+
+            return DiscountCode::getArrayFromResult($result);
         }
 
         public static function getCodeByArtistAndCode($conn, $artistId, $codeString) {
@@ -293,6 +308,15 @@
 
             return $code;
 
+        }
+
+        private static function getArrayFromResult($result) {
+            $arr = [];
+            while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+                $arr[] = DiscountCode::constructFromRow($row);
+            }
+
+            return $arr;
         }
 
         private static function constructFromRow($row) {

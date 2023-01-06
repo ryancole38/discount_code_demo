@@ -9,6 +9,7 @@ body {
     min-height: 100%;
     margin: 0px;
     background-color: #F0F0F0F0;
+    position: relative;
 }
 
 header {
@@ -22,7 +23,7 @@ header {
     color: white;
 }
 
-#content-container {
+#content-body {
     position: absolute;
     display: flex;
     justify-content: center;
@@ -30,18 +31,20 @@ header {
     height: 100%;
 }
 
-#content {
+#content-container {
     background-color: #ffffff;
     width: 80%;
     height: 100%;
     border-left: 5px solid black;
     border-right: 5px solid black;
+    position: relative;
 }
 
-#view {
+#content {
     position: relative;
     margin: 10px;
     top: 100px;
+    height: 80%
 }
 
 #nav-bar {

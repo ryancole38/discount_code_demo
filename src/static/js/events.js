@@ -6,10 +6,10 @@ async function makeAsyncRequest(route, dataToSend) {
             type: 'GET',
             data: dataToSend,
             success: function(data) {
-                console.log(data);
+                //console.log(data);
             },
             error: function(data) {
-                console.error(data);
+                //console.error(data);
             }
         }
     );
@@ -77,19 +77,23 @@ function onDiscountCodeApply() {
         }
     ).then((response) => {
         // Reset input box to have no value
+        response = JSON.parse(response);
         discountInputBox.val("");
 
-        if (!response['success']) {
-            // highlight discountInputBox red to show error
+        if (response['success']) {
+            updateViewContent(response['view']);
         }
 
-        response['discounts'].forEach(addAppliedDiscount);
     });
+}
+
+function updateViewContent(content) {
+    $('#view').replaceWith(content);
 }
 
 function addAppliedDiscount(discount) {
     let amount = discount['amount'];
     let id = discount['id'];
     let appliedDiscountsList = $('#applied-discounts-list');
-    
+
 }

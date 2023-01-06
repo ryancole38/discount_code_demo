@@ -48,9 +48,9 @@ class ABCPageView {
                 </ul>
             </div>
         </header>
-        <div id='content-container'>
-            <div id='content'>
-                <div id='view'>
+        <div id='content-body'>
+            <div id='content-container'>
+                <div id='content'>
                     <h2><?php echo $headerText; ?></h2>
                     <?php
                     if (!empty($backLink)) {
@@ -58,7 +58,9 @@ class ABCPageView {
                     }
                     ?>
                     </br></br>
-                    <?php echo $content;?>
+                    <div id='view'>
+                        <?php echo $content;?>
+                    </div>
                 </div>
             </div>
         </div>
