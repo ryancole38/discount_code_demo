@@ -6,6 +6,7 @@ class MerchItem {
     public $name;
     public $price; // In an actual system, I would use a "money" type rather than a float
     public $merchTypeId;
+    public $artistId;
 
     private static $createTableQuery = <<<EOF
     CREATE TABLE MerchItem(

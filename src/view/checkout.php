@@ -10,40 +10,59 @@ class CheckoutView {
     }
 
     function renderCart() {
-        echo <<<EOF
-        <table>
-            <th>
-                <td>Item</td>
-                <td>Artist</td>
-                <td>Price</td>
-            </th>
-        EOF;
+        ob_start();
+        ?>
+    <div class='items'>
+        <?php
         foreach ($this->cart->items as $item) {
-            printf(
-                '<tr><td>%s</td><td>%s</td><td>$%.2f</td></tr>',
-                $item->name,
-                $item->artistId,
-                $item->price
-            );
+            echo $this->renderItem($item);
         }
-        echo '</table>';
+        ?>
+    </div>
+        <?php
+        return ob_get_clean();
+    }
+
+    function renderItem($item) {
+        return sprintf(
+            '
+           <div class="item">
+            <div class="details">
+             <h3 class="name">%s</h3>
+             <p class="artist">%s</p>
+            </div>
+            <div class="price">
+             <p class="price">$%.2f</p>
+            </div>
+           </div>
+           <hr>
+            ',
+            $item->name,
+            $item->artistId,
+            $item->price
+        );
     }
 
     function getView() {
         ob_start();
         ?>
-    <div id='checkout-summary'>
-
-        <?php
-        echo $this->renderCart();
-        ?>
-
-        <t>Subtotal: <?php echo $this->transaction->getSubtotal(); ?></t></br>
-        <t>Discount: <?php echo $this->transaction->getDiscount(); ?></t></br>
-        <t>Total: <?php echo $this->transaction->getTotal(); ?></t></br>
-        <label for="discount-code">Apply discount code: </label>
-        <input id="discount-code" type="text"/>
-        <button onclick="onDiscountCodeApply()">Submit</button> 
+    <div class='checkout'>
+        <div class='info'>
+            <p>Insert Content Here</p>
+        </div>
+        <div class='summary'>
+            <?php
+            echo $this->renderCart();
+            ?>
+            <div class='totals'>
+                <input id="discount-code" type="text" placeholder="Discount Code"/>
+                <button onclick="onDiscountCodeApply()">Apply</button> </br>
+                <hr>
+                <t>Subtotal: <?php echo $this->transaction->getSubtotal(); ?></t></br>
+                <t>Discount: <?php echo $this->transaction->getDiscount(); ?></t></br>
+                <t>Total: <?php echo $this->transaction->getTotal(); ?></t></br>
+            </div>
+        </div>
     </div>
 
         <?php

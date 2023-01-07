@@ -2,6 +2,10 @@
 
 class ABCPageView {
 
+    function __construct() {
+
+    }
+
     static function renderLink($text, $link) {
         return sprintf('<a href="http://%s%s">%s</a>',
             $_SERVER['HTTP_HOST'],
@@ -12,9 +16,13 @@ class ABCPageView {
 
     static function getLogInOrLogOutLink($isLoggedIn) {
         if($isLoggedIn) {
-            return ABCPageView::renderLink('Log out', '/login?action=logout');
+            return ABCPageView::renderAccountDropdown();
         }
         return ABCPageView::renderLink('Log In', '/login');
+    }
+
+    static function renderAccountDropdown() {
+        return ABCPageView::renderLink('Log out', '/login?action=logout');
     }
 
     static function render($title, $headerText, $content, $loggedIn, $backLink='') {
@@ -28,40 +36,26 @@ class ABCPageView {
         <link rel="stylesheet" href="/static/css/style.css"/>
     </head>
     <body>
-        <header>
-            <div id='nav-bar'>
+        <div class='grid-container'>
+            <div class='nav'>
                 <ul>
                     <li><?php echo ABCPageView::renderLink('Home', '/'); ?></li>
-                </ul>
-                <ul>
                     <li><?php echo ABCPageView::renderLink('Merch', '/'); ?><li>
-                </ul>
-                <ul>
                     <li class="nav-right">
                         <?php echo ABCPageView::getLoginOrLogOutLink($loggedIn)?>
                     </li>
-                </ul>
-                <ul>
                     <li class="nav-right">
                         <?php echo ABCPageView::renderLink('Cart', '/checkout'); ?>
                     </li>
                 </ul>
             </div>
-        </header>
-        <div id='content-body'>
-            <div id='content-container'>
-                <div id='content'>
-                    <h2><?php echo $headerText; ?></h2>
-                    <?php
-                    if (!empty($backLink)) {
-                        echo ABCPageView::renderLink('<< Back', $backLink);
-                    }
-                    ?>
-                    </br></br>
-                    <div id='view'>
-                        <?php echo $content;?>
-                    </div>
+            <div class='view'>
+                <h2><?php echo $headerText; ?></h2>
+                <div class='content'>
+                    <?php echo $content;?>
                 </div>
+            </div>
+            <div class='footer'>
             </div>
         </div>
     </body>
