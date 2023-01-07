@@ -28,7 +28,6 @@
         public $discountAmount;
         public $timesRedeemable;
         public $userCanReuse;
-        public $isStackable;
         public $minimumOrderAmount;
 
         private static $createTableQuery = <<<EOF
@@ -46,7 +45,6 @@
             discountType        INTEGER,
             discountAmount      REAL NOT NULL,
             timesRedeemable     INTEGER,
-            isStackable         INTEGER,
             minimumOrderAmount  REAL 
         );
         EOF;
@@ -65,7 +63,6 @@
             discountType,
             discountAmount,
             timesRedeemable,
-            isStackable,
             minimumOrderAmount
         )
         VALUES (
@@ -81,7 +78,6 @@
             :discountType,
             :discountAmount,
             :timesRedeemable,
-            :isStackable,
             :minimumOrderAmount
         );
         EOF;
@@ -121,7 +117,6 @@
             discountType = :discountType,
             discountAmount = :discountAmount,
             timesRedeemable = :timesRedeemable,
-            isStackable = :isStackable,
             minimumOrderAmount = :minimumOrderAmount
         WHERE id = :id;
         EOF;
@@ -151,7 +146,6 @@
             $this->discountType = self::FLAT_DISCOUNT;
             $this->discountAmount = 0;
             $this->timesRedeemable = 0;
-            $this->isStackable = false;
             $this->minimumOrderAmount = 0;
         }
 
@@ -299,7 +293,6 @@
                 $code->discountType = $row['discountType'];
                 $code->discountAmount = strval($row['discountAmount']);
                 $code->timesRedeemable = strval($row['timesRedeemable']);
-                $code->isStackable = DB::parseBool($row['isStackable']);
                 $code->minimumOrderAmount = strval($row['minimumOrderAmount']);
             } catch(Exception $error){
                 // TODO: log the error or something
@@ -335,7 +328,6 @@
             $code->discountType = $row['discountType'];
             $code->discountAmount = $row['discountAmount'];
             $code->timesRedeemable = $row['timesRedeemable'];
-            $code->isStackable = $row['isStackable'];
             $code->minimumOrderAmount = $row['minimumOrderAmount'];
 
             return $code;
@@ -354,7 +346,6 @@
             $statement->bindValue(':discountType', $this->discountType, SQLITE3_INTEGER);
             $statement->bindValue(':discountAmount', $this->discountAmount, SQLITE3_FLOAT);
             $statement->bindValue(':timesRedeemable', $this->timesRedeemable, SQLITE3_INTEGER);
-            $statement->bindValue(':isStackable', DB::boolToInt($this->isStackable), SQLITE3_INTEGER);
             $statement->bindValue(':minimumOrderAmount', $this->minimumOrderAmount, SQLITE3_FLOAT);
 
         }

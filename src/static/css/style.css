@@ -55,6 +55,10 @@ body {
     background-color: #1D1D1D;
 }
 
+.error {
+    color: red;
+}
+
 .checkout {
     display: grid;
     grid-template-columns: 2fr 1fr;

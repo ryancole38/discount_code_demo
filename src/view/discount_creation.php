@@ -66,10 +66,6 @@ class DiscountCreationView {
             <input type="text" id='timesRedeemable' value="<?php 
                 echo $this->discountCode->timesRedeemable;
             ?>"/></br>
-            <t>Is Stackable: </t>
-            <input type="checkbox" id='isStackable'<?php 
-                if ($this->discountCode->isStackable) echo ' checked';
-            ?>/></br>
             <t>Minimum Order Amount: </t>
             <input type="text" id='minimumOrderAmount' value="<?php 
                 echo $this->discountCode->minimumOrderAmount;

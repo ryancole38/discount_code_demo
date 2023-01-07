@@ -34,7 +34,6 @@ function onSubmitDiscountCodeChanges() {
         discountType: 0,
         discountAmount: 0,
         timesRedeemable: 0,
-        isStackable: false,
         minimumOrderAmount: 0
     };
 
@@ -44,14 +43,84 @@ function onSubmitDiscountCodeChanges() {
 
     // Populate discount code from form elements
     Object.keys(discountCode).forEach(setObjectFromInputValue);
-    // Fix isStackable since it's a checkbox
-    discountCode['isStackable'] = form.find('#isStackable').is(':checked');
 
-    let response = makeAsyncRequest(
-        '/discount_codes/create/creatediscount',
-        discountCode     
-    );
+    if (checkForAndSetDiscountCreationErrors(discountCode)){
+        let response = makeAsyncRequest(
+            '/discount_codes/create/creatediscount',
+            discountCode     
+        );
+    }
 
+}
+
+function checkForAndSetDiscountCreationErrors(discountCode) {
+    let validationFunctions = {
+        codeString: validateCodeString,
+        startDate: validateDateString,
+        endDate: validateDateString,
+        discountAmount: validateUnsigned,
+        timesRedeemable: validateUnsignedInt,
+        minimumOrderAmount: validateUnsigned
+    }
+
+    let hadError = false;
+    Object.keys(validationFunctions).forEach((fieldId) => {
+        let validationFn = validationFunctions[fieldId];
+        if (!validationFn(discountCode[fieldId])) {
+            hadError = true;
+            setError(fieldId);
+        }
+        else {
+            // Clear error just in case it was previously set
+            clearError(fieldId);
+        }
+    });
+    return !hadError;
+}
+
+function setError(fieldId) {
+    let element = $('#' + fieldId);
+    // Todo: check if element exists
+    element.addClass('error');
+}
+
+function clearError(fieldId) {
+    let element = $('#' + fieldId);
+    element.removeClass('error');
+}
+
+function validateUnsigned(numericString) {
+    // Match arbitrary # of digits, but if there is a decimal
+    // then there must be at least one digit following
+    // Valid: 0, 0.1, 1.5
+    // Not valid: 0. , . , .1
+    const unsignedExpr = /[0-9]{1,}(\.[0-9]{1,}){0,1}/
+    return (numericString.match(unsignedExpr) !== null);
+}
+
+function validateUnsignedInt(numericString) {
+    const uintExpr = /[0-9]{1}/;
+    return (numericString.match(uintExpr) !== null);
+}
+
+function validateCodeString(codeString) {
+    const codeExpr = /[a-zA-Z0-9]{1,}/;
+    return (codeString.match(codeExpr) !== null);
+}
+
+function validateDateString(dateString) {
+    // Match MM/DD/YYYY
+    const dateExpr = /([0-9]{2})\/([0-9]{2})\/([0-9]{4})/
+    let matches = dateString.match(dateExpr);
+    if (matches === null) {
+        return false;
+    }
+    let month = matches[1];
+    let date = matches[2];
+    let year = matches[3];
+
+    let dateObj = new Date(`${year}-${month}-${date}`);
+    return (dateObj !== "Invalid Date" && !isNaN(dateObj));
 }
 
 async function onDeleteDiscountCodeClicked(id) {
