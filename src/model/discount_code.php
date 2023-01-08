@@ -448,7 +448,7 @@
             $valid = false;
             switch ($this->discountType) {
                 case DiscountCode::FLAT_DISCOUNT:
-                case DiscountCode::PERCENT_DISCOUNT:
+                case DiscountCode::PERCENTAGE_DISCOUNT:
                     $valid = true; 
                     break;
                 case DiscountCode::BOGO_DISCOUNT:
