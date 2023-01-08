@@ -48,7 +48,9 @@ function onSubmitDiscountCodeChanges() {
         let response = makeAsyncRequest(
             '/discount_codes/create/creatediscount',
             discountCode     
-        );
+        ).then((res) => {
+            console.log(res);
+        });
     }
 
 }

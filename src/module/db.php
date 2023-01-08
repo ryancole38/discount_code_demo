@@ -31,6 +31,29 @@ class DB extends SQLite3{
         return $value === 1 ? true : false;
     }
 
+    // Convert MM/DD/YYYY to YYYY-MM-DD
+    public static function dateMdyToYmd(string $dateString) : string {
+        $dateExpr = "#^([0-9]{2})\/([0-9]{2})\/([0-9]{4})$#";
+        if (!preg_match($dateExpr, $dateString, $matches)) {
+            return '1970-01-01'; // Sloppy, but return Jan 1, 1970 if no match
+        }
+        $year = $matches[3];
+        $month = $matches[1];
+        $date = $matches[2];
+        return sprintf('%s-%s-%s', $year, $month, $date);
+    }
+
+    public static function dateYmdToMdy(string $dateString) : string {
+        $dateExpr = "#^([0-9]{4})-([0-9]{2})-([0-9]{2})$#";
+        if (!preg_match($dateExpr, $dateString, $matches)) {
+            return '01/01/1970';
+        }
+        $year = $matches[1];
+        $month = $matches[2];
+        $date = $matches[3];
+        return sprintf('%s/%s/%s', $month, $date, $year);
+    } 
+
     public static function parseBool(string $string) : bool {
         if (strtolower($string) === 'true') {
             return true;

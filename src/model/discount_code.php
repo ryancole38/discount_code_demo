@@ -97,6 +97,7 @@
         WHERE 
             artistId = :artistId 
             AND codeString = :codeString;
+            AND isDeleted = 0;
         EOF;
 
         private static $selectByCodeStringQuery = <<<EOF
@@ -149,10 +150,6 @@
             $this->minimumOrderAmount = 0;
         }
 
-        public function isActive() {
-            return true;
-        }
-
         public static function getAllByArtistId($conn, $artistId) {
             $statement = $conn->prepare(DiscountCode::$selectByArtistIdQuery);
             
@@ -197,9 +194,12 @@
             $statement->bindValue(':codeString', $codeString);
 
             $result = $statement->execute();
-            // TODO: check for error
+            $row = $result->fetchArray(SQLITE3_ASSOC);
+            if (!$row) {
+                return false;
+            }
 
-            return DiscountCode::constructFromRow($result->fetchArray(SQLITE3_ASSOC));
+            return DiscountCode::constructFromRow($row);
         } 
 
         public static function createTable($conn) {
@@ -226,6 +226,11 @@
                 return false;
             }
 
+            // Code cannot already exist for this artist.
+            if (!$this->isUniqueToArtist($conn)) {
+                return false;
+            }
+
             $statement = $conn->prepare(DiscountCode::$insertIntoQuery);
 
             $this->bindInstanceToPreparedStatement($statement);
@@ -248,11 +253,18 @@
 
             // Can't update a record to be invalid.
             if (!$this->isValid()) {
+                echo 'invalid';
                 return false;
             }
 
+            // Can't update a record to duplicate another code
+            if (!$this->isUniqueToArtist($conn)) {
+                echo 'not unique';
+                return false;
+            } 
+
             // TODO : update this to use versioning to set the 'updated by parameter'
-            // Create the update preared query
+            // Create the update prepared query
             $statement = $conn->prepare(DiscountCode::$updateQuery);
             $statement->bindValue(':id', $this->id, SQLITE3_INTEGER);
             $this->bindInstanceToPreparedStatement($statement);
@@ -282,18 +294,18 @@
             $code = new DiscountCode();
 
             try {
-                $code->id = strval($row['id']);
-                $code->artistId = strval($row['artistId']);
-                $code->merchTypeId = strval($row['merchTypeId']);
+                $code->id = intval($row['id']);
+                $code->artistId = intval($row['artistId']);
+                $code->merchTypeId = intval($row['merchTypeId']);
                 $code->dateCreated = 0; // TODO: change to now
                 $code->codeString = $row['codeString'];
                 $code->discountMessage = $row['discountMessage'];
                 $code->startDate = $row['startDate'];
                 $code->endDate = $row['endDate'];
-                $code->discountType = $row['discountType'];
-                $code->discountAmount = strval($row['discountAmount']);
-                $code->timesRedeemable = strval($row['timesRedeemable']);
-                $code->minimumOrderAmount = strval($row['minimumOrderAmount']);
+                $code->discountType = intval($row['discountType']);
+                $code->discountAmount = floatval($row['discountAmount']);
+                $code->timesRedeemable = intval($row['timesRedeemable']);
+                $code->minimumOrderAmount = floatval($row['minimumOrderAmount']);
             } catch(Exception $error){
                 // TODO: log the error or something
                 $code = null;
@@ -323,8 +335,8 @@
             $code->isDeleted = $row['isDeleted'];
             $code->codeString = $row['codeString'];
             $code->discountMessage = $row['discountMessage'];
-            $code->startDate = $row['startDate'];
-            $code->endDate = $row['endDate'];
+            $code->startDate = DB::dateYmdToMdy($row['startDate']);
+            $code->endDate = DB::dateYmdToMdy($row['endDate']);
             $code->discountType = $row['discountType'];
             $code->discountAmount = $row['discountAmount'];
             $code->timesRedeemable = $row['timesRedeemable'];
@@ -341,8 +353,8 @@
             $statement->bindValue(':isDeleted', DB::boolToInt($this->isDeleted), SQLITE3_INTEGER);
             $statement->bindValue(':codeString', $this->codeString, SQLITE3_TEXT);
             $statement->bindValue(':discountMessage', $this->discountMessage, SQLITE3_TEXT);
-            $statement->bindValue(':startDate', $this->startDate, SQLITE3_TEXT);
-            $statement->bindValue(':endDate', $this->endDate, SQLITE3_TEXT);
+            $statement->bindValue(':startDate', DB::dateMdyToYmd($this->startDate), SQLITE3_TEXT);
+            $statement->bindValue(':endDate', DB::dateMdyToYmd($this->endDate), SQLITE3_TEXT);
             $statement->bindValue(':discountType', $this->discountType, SQLITE3_INTEGER);
             $statement->bindValue(':discountAmount', $this->discountAmount, SQLITE3_FLOAT);
             $statement->bindValue(':timesRedeemable', $this->timesRedeemable, SQLITE3_INTEGER);
@@ -350,9 +362,118 @@
 
         }
 
-        public function isValid() {
-            // TODO: perform validation logic
+        public function isUniqueToArtist($conn) {
+            // An artist ID of 0 is a global code. Global codes still may not be duplicates.
+            $existingCode = DiscountCode::getCodeByArtistAndCode($conn, $this->artistId, $this->codeString);
+            
+            // No code exists, return early.
+            if (!$existingCode) {
+                return true;
+            }
+
+            // If the code has the same ID, then we're updating the record and this is ok to update.
+            if ($this->id > 0 && $existingCode->id === $this->id) {
+                return true;
+            }
+
+            return false;
+
+        }
+
+        public function isActive() {
+            if ($this->isDeleted) {
+                return false;
+            }
+
+            // This will validate that the dates are valid
+            if (!$this->isValid()) {
+                return false;
+            }
+
+            // m - month with leading zeros
+            // j - date with leading zeros
+            // Y - Year 
+            $startDateObj = date_create_from_format("m/j/Y", $this->startDate);
+            $endDateObj = date_create_from_format("m/j/Y", $this->endDate);
+            $currentTime = date_create();
+
+            // check that start < now < end
+            if ($currentTime < $startDateObj || $currentTime > $endDateObj) {
+                return false;
+            }
+
             return true;
+        }
+
+        // Check that the DiscountCode is in a valid state and can be
+        // Committed to the database.
+        public function isValid() {
+            $valid = (
+                $this->validateDate($this->startDate) &&
+                $this->validateDate($this->endDate) &&
+                $this->validateDiscountTypeAndAmount() &&
+                $this->validateCodeString() && 
+                ($this->minimumOrderAmount >= 0)
+            );
+
+            return $valid;
+        }
+
+        // Validates that $dateString is of the format MM/DD/YYYY and that
+        // it is a valid date (e.g. no 02/31/2000)
+        private function validateDate($dateString) {
+            $dateExpr = "#^([0-9]{2})\/([0-9]{2})\/([0-9]{4})$#";
+            // If it doesn't match, return false
+            if (!preg_match($dateExpr, $dateString, $matches)) {
+                return false;
+            }
+
+            $month = $matches[1];
+            $date = $matches[2];
+            $year = $matches[3];
+
+            return checkdate($month, $date, $year);
+        }
+
+        private function validateDiscountTypeAndAmount() {
+            // Cannot have a negative discount amount
+            if ($this->discountAmount < 0) {
+                return false;
+            }
+
+            // Using a switch statement in non-C languages is kinda
+            // cringe but (at least to my admittedly-C-familiar eyes)
+            // cleaner than having a massive if-else block.
+            // Validate discount type
+            $valid = false;
+            switch ($this->discountType) {
+                case DiscountCode::FLAT_DISCOUNT:
+                case DiscountCode::PERCENT_DISCOUNT:
+                    $valid = true; 
+                    break;
+                case DiscountCode::BOGO_DISCOUNT:
+                    // Buy one, get one discounts cannot be more
+                    // than 100% off
+                    if ($this->discountAmount <= 100) {
+                        $valid = true;
+                    }
+                    break;
+                default:
+                    // discount type was out of bounds
+                    break;
+            }
+
+            return $valid;
+        }
+
+        // Validate that the code string is at least one character
+        // long and contains a-z A-Z 0-9
+        private function validateCodeString() {
+            $codeExpr = '#^[a-zA-Z0-9]+$#';
+            if (preg_match($codeExpr, $this->codeString)) {
+                return true;
+            }
+            return false;
         }
 
     }

@@ -71,6 +71,14 @@ class DiscountCreationController extends ABCPage {
             return false;
         }
 
+        // If there is an artistId specified, make sure it's the current user's.
+        // This prevents them from creating/updating another users' codes. 
+        if ($code->artistId !== 0 && $code->artistId !== $this->getLoggedInUserId()){
+            return false;
+        }
+
+        // TODO: add authentication for creating global codes (artistID = 0)
+
         $code->commit($conn);
         return true;
 
