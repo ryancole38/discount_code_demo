@@ -45,8 +45,8 @@
 
         function renderView() {
             require_once('./view/login.php');
-            $view = getView($this->error);
-            $this->renderBasePage('Login', 'Log in', $view, null);
+            $view = (new LoginView())->getView($this->error);
+            $this->renderBasePage('Login', '', $view, null);
         }
 
     }
