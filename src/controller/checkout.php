@@ -4,6 +4,7 @@ require_once('./view/checkout.php');
 require_once('./router.php');
 require_once('./module/db.php');
 require_once('./module/transaction_processor.php');
+require_once('./module/discount_applicator.php');
 require_once('./controller/abc_page.php');
 require_once('./model/cart.php');
 require_once('./model/discount_code.php');
@@ -78,55 +79,40 @@ class CheckoutController extends ABCPage {
 
     public function handleApplyDiscount($request) : ApplyDiscountResponse {
         $response = new ApplyDiscountResponse(false);
-        try {
-            $conn = new DB();
-            $discountCode = $request['code'];
+        $conn = new DB();
 
-            // If 'artist' is provided, check to see if there is a discount code
-            // that matches.
-            if (isset($request['artist'])) {
-                $artistName = $request['artist'];
-                //$discount = DiscountCode::getByArtistAndCode();
-            } 
-            else {
-                // If there isn't an artist, try to see if this code is unique.
-                // If it isn't, get all artists who have that code.
-                $discountResults = DiscountCode::getAllByCodeString($conn, $discountCode);
-                if (count($discountResults) === 1) {
-                    // Exactly the code we were looking for.
-                    $processor = new TransactionProcessor($this->cart, $discountResults[0]);
-                    $checkoutView = new CheckoutView($this->cart, $processor->process());
-                    $response->success = true;
-                    $response->view = $checkoutView->getView();
-                } else {
-                    // Returned more than one, return artist names.
-                    // Or, returned none so return empty array.
-                    $response->success = true;
-                    $response->possibleArtists = getArtistsWithDiscountCodeMatching($discountCode);
+        $applicator = new DiscountApplicator($this->cart);
+        $applicator->discountCodeString = $request['code'];
+        $processor = new TransactionProcessor($this->cart, null);
+        $checkoutView = new CheckoutView($this->cart, null);
 
-                }
-            }
+        // If 'artist' is provided, check to see if there is a discount code
+        // that matches.
+        if (isset($request['artist'])) {
+            $applicator->artistName = $request['artist'];                
+        } 
 
-        } catch (Exception $e) {
-            // TODO: log $e
+        $lookupResult = $applicator->performLookup($conn);
+
+        if ($lookupResult->discountMatchFound()) {
+            // Match found, set results.
+            $response->success = true;
+            $processor->discount = $lookupResult->discount;
+        } else if ($lookupResult->multipleDiscountOptionsAvailable()) {
+            // No match found, but artists found.
+            $response->success = true;
+            $response->possibleArtists = $lookupResult->possibleArtists;
         }
+        else {
+            // No matches are available.
+            $checkoutView->error = "No discount code found.";
+        }
+
+        $checkoutView->transaction = $processor->process();
+        $response->view = $checkoutView->getView();
+
         return $response;
     }
-
-    private function getArtistsWithDiscountCodeMatching($discountCode) {
-        $conn = new DB();
-        $discounts = ArtistDiscount::getAllByCode($conn, $discountCode);
-        // Reduce artist discounts down to just artist names
-        $artists = array_map(
-            function($artistDiscount) {
-                return $artistDiscount->artistName;
-            },
-            $discounts
-        );
-
-        return $artists;
-    }
-
 }
 
 ?>

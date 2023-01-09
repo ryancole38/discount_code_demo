@@ -23,6 +23,25 @@ class ArtistDiscount {
         codeString = :discountCode;
     EOF;
 
+    private static $getByArtistNameAndCodeStringQuery = <<<EOF
+    SELECT * FROM (
+        SELECT  
+            USER.ID as artistId, 
+            USER.USERNAME as artistName, 
+            DiscountCode.id as discountId,
+            DiscountCode.codeString as discountCode
+        FROM 
+            USER INNER JOIN DiscountCode
+        ON 
+            USER.ID = DiscountCode.artistId
+        WHERE
+            isDeleted = 0
+        )
+    WHERE
+        discountCode = :discountCode AND
+        artistName = :artistName;
+    EOF;
+
     function __construct() {
         $artistName = '';
         $artistId = 0;
@@ -34,7 +53,7 @@ class ArtistDiscount {
         $statement = $conn->prepare(ArtistDiscount::$getAllByCodeQuery);
         $statement->bindValue(':discountCode', $code);
 
-        $results = $statement->query();
+        $results = $statement->execute();
         $artistDiscounts = [];
         while($row = $results->fetchArray(SQLITE3_ASSOC)) {
             $artistDiscounts[] = ArtistDiscount::constructFromRow($row);
@@ -42,7 +61,21 @@ class ArtistDiscount {
         return $artistDiscounts;
     }
 
-    private static function getByRow($row) {
+    public static function getByArtistNameAndCodeString($conn, $artistName, $codeString) {
+        $statement = $conn->prepare(ArtistDiscount::$getByArtistNameAndCodeStringQuery);
+
+        $statement->bindValue(':artistName', $artistName);
+        $statement->bindValue(':discountCode', $codeString);
+
+        $result = $statement->execute();
+        $row = $result->fetchArray(SQLITE3_ASSOC);
+        if (!$row) {
+            return null;
+        }
+        return ArtistDiscount::constructFromRow($row); 
+    }
+
+    private static function constructFromRow($row) {
         $temp = new ArtistDiscount();
         $temp->artistId = $row['artistId'];
         $temp->artistName = $row['artistName'];

@@ -51,7 +51,7 @@ class ABCPageView {
             </div>
             <div class='view'>
                 <h2><?php echo $headerText; ?></h2>
-                <div class='content'>
+                <div id='content' class='content'>
                     <?php echo $content;?>
                 </div>
             </div>

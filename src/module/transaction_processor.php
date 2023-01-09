@@ -71,7 +71,7 @@ class TransactionProcessor {
         // discountAmount is a percentage 0 - 100, so we divide by
         // 100 so that we can multiply by the eligible total to get
         // the discount amount.
-        return $eligibleTotal * ($this->discountAmount / 100);
+        return $eligibleTotal * ($this->discount->discountAmount / 100);
     }
 
     private function calculateBogoDiscount() {
@@ -87,6 +87,8 @@ class TransactionProcessor {
         
         // Sort the items by price
         $this->sortItemsByPrice($eligibleItems);
+        // "Reindex" the array since PHP arrays are weird and use keys
+        $eligibleItems = array_values($eligibleItems);
 
         // Since BOGO usually works by "equal or lesser value",
         // the highest priced item will be [0], and the next item

@@ -148,8 +148,9 @@ function onDiscountCodeApply() {
         }
     ).then((response) => {
         // Reset input box to have no value
+        console.log(response);
         response = JSON.parse(response);
-        discountInputBox.val("");
+        //discountInputBox.val("");
 
         if (response['success']) {
             updateViewContent(response['view']);
@@ -159,7 +160,7 @@ function onDiscountCodeApply() {
 }
 
 function updateViewContent(content) {
-    $('#view').replaceWith(content);
+    $('#content').html(content);
 }
 
 function addAppliedDiscount(discount) {

@@ -4,9 +4,14 @@ require_once('./view/abc_page.php');
 
 class CheckoutView {
 
+    public $cart;
+    public $transaction;
+    public $message;
+
     function __construct($cart, $transaction){
         $this->cart = $cart;
         $this->transaction = $transaction;
+        $this->message = '';
     }
 
     function renderCart() {
@@ -58,6 +63,7 @@ class CheckoutView {
                 <input id="discount-code" type="text" placeholder="Discount Code"/>
                 <button onclick="onDiscountCodeApply()">Apply</button> </br>
                 <hr>
+                <t>Message: <?php echo $this->message; ?></t>
                 <t>Subtotal: <?php echo $this->transaction->getSubtotal(); ?></t></br>
                 <t>Discount: <?php echo $this->transaction->getDiscount(); ?></t></br>
                 <t>Total: <?php echo $this->transaction->getTotal(); ?></t></br>

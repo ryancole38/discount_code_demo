@@ -16,6 +16,7 @@ class Cart {
             new MerchItem('WORRY.', 19.99, 1, 1),
             new MerchItem('PUPTHEBAND Inc. T-shirt', 25, 2, 2),
             new MerchItem('PUP - Self-titled', 19.99, 1, 2),
+            new MerchItem('Morbid Stuff', 19.99, 1, 2),
             new MerchItem('Pride', 35, 2, 1) 
         ];
     }

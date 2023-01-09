@@ -187,6 +187,7 @@
             return DiscountCode::getArrayFromResult($result);
         }
 
+        // Get discount by ARTISTID and $codeString
         public static function getCodeByArtistAndCode($conn, $artistId, $codeString) {
             $statement = $conn->prepare(DiscountCode::$selectByArtistIdAndCodeStringQuery);
 
