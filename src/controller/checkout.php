@@ -154,7 +154,6 @@ class CheckoutController extends ABCPage {
         $conn = new DB();
         $response = new SubmitOrderResponse(false);
         $discount = null; 
-        echo var_dump($request);
         if (isset($request['code']) && isset($request['artist'])) {
             $applicator = new DiscountApplicator($this->cart);
             $applicator->discountCodeString = $request['code'];
@@ -163,13 +162,10 @@ class CheckoutController extends ABCPage {
             $lookupResult = $applicator->performLookup($conn);
             // The user did not give us a valid discount code / artist combo!
             if (!$lookupResult->discountMatchFound()) {
-                echo 'no discount';
                 return $response;
             }
             $discount = $lookupResult->discount;
-            echo var_dump($discount);
         }
-        echo 'got here';
 
         $processor = new TransactionProcessor($this->cart, $discount);
         $transaction = $processor->process();

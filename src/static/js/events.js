@@ -177,8 +177,11 @@ function makeSubmitOrderRequest(data) {
         let response = JSON.parse(res);
         if (response['success']){
             // redirect to "thank you" page
-            //window.location.href = 'http://localhost:8000/order_confirmation'
+            window.location.href = 'http://localhost:8000/order_confirmation'
         } else {
+            // TODO: specify WHY. It's probably because the code
+            // was used too many times, which could be specified in the
+            // response.
             alert('Failed to submit order');
         }
     });

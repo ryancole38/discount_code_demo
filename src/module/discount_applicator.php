@@ -2,6 +2,7 @@
 require_once('./module/db.php');
 require_once('./model/discount_code.php');
 require_once('./model/artist_discount.php');
+require_once('./model/transaction.php');
 require_once('./model/cart.php');
 
 /*
@@ -56,7 +57,7 @@ class DiscountApplicator {
         $discount = $this->getDiscountUsingArtistAndCode($conn);
 
         // Make sure that the discount code is active if found
-        if (!empty($discount) && $discount->isActive()){
+        if ($this->discountCanBeApplied($conn, $discount)){
             $lookupResults->discount = $discount;
             $lookupResults->artistName = $this->artistName;
         }
@@ -111,6 +112,26 @@ class DiscountApplicator {
         } 
 
         return $artistIds;
+    }
+
+    private function discountCanBeApplied($conn, $discount) {
+        if (empty($discount) || !$discount->isActive()) {
+            return false;
+        }
+
+        $timesRedeemed = Transaction::getTotalUsagesOfDiscount($conn, $discount->id);
+
+        // If timesRedeemable = 0, then it can always be redeemed.
+        // If it has been redeemed the same number (or more!) times as it is redeemable,
+        // then we cannot apply it.
+        // IDEALLY this check should be done in DiscountCode, but I couldn't find a
+        // non-gross way of doing so because it requires knowledge of Transaction
+        // and a database connection. This is a limitation of my model framework.
+        if ($discount->timesRedeemable > 0 && $timesRedeemed >= $discount->timesRedeemable) {
+            return false;
+        }
+
+        return true;
     }
 }
 
