@@ -27,6 +27,8 @@ class DiscountApplicator {
         if (empty($this->discountCodeString)) {
             return $lookupResults;
         }
+
+        $lookupResults->providedDiscountString = $this->discountCodeString;
         
         // Make sure that the cart is set and not empty
         if (empty($this->cart) || count($this->cart->items) === 0) {
@@ -56,6 +58,7 @@ class DiscountApplicator {
         // Make sure that the discount code is active if found
         if (!empty($discount) && $discount->isActive()){
             $lookupResults->discount = $discount;
+            $lookupResults->artistName = $this->artistName;
         }
 
         return $lookupResults;
@@ -123,6 +126,8 @@ code to use.
 class DiscountApplicationResults {
 
     public DiscountCode $discount;
+    public string $artistName;
+    public string $providedDiscountString;
     public Array $possibleArtists;
 
     public function __construct() {
@@ -137,8 +142,10 @@ class DiscountApplicationResults {
     } 
 
     // Returns true if a single discount code was found
+    // and it is active. The DiscountApplicator should have
+    // guaranteed the code is active but double check.
     public function discountMatchFound() {
-        return !empty($this->discount);
+        return (!empty($this->discount) && $this->discount->isActive());
     }
 }
 

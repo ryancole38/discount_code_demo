@@ -52,7 +52,7 @@ class DiscountCreationController extends ABCPage {
 
         $form = $view->getView();
         $this->renderBasePage(
-            'test', 
+            'Create Discount Code', 
             'Create Discount Code', 
             $form, 
             '/discount_codes/admin'

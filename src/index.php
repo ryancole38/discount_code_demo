@@ -5,6 +5,7 @@ require_once('./controller/discount_codes.php');
 require_once('./controller/code_detail.php');
 require_once('./controller/discount_creation.php');
 require_once('./controller/checkout.php');
+require_once('./controller/order_confirmation.php');
 require_once('./controller/login.php');
 
 $router = new Router();
@@ -31,6 +32,11 @@ $router->addRoute('/discount_codes/create(/[a-zA-Z]+)?', function($args, $matche
 
 $router->addRoute('/checkout(/[a-zA-Z]+)?', function($args, $matches) {
     $page = new CheckoutController($matches);
+    $page->handle();
+});
+
+$router->addRoute('/order_confirmation', function() {
+    $page = new OrderConfirmationController();
     $page->handle();
 });
 

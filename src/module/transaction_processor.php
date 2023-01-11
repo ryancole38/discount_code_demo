@@ -19,6 +19,12 @@ class TransactionProcessor {
         $transaction->subTotal = $this->getTotalForItems($this->cart->items); 
 
         $transaction->discountAmount = $this->calculateDiscount();
+        
+        // If a discount was applied, then the set discount 
+        // is valid (or we have a bigger bug).
+        if ($transaction->discountAmount > 0) {
+            $transaction->appliedDiscountId = $this->discount->id;
+        }
 
         $transaction->calculateTotal();
 

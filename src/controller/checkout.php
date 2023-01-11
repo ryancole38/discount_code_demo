@@ -34,6 +34,20 @@ class ApplyDiscountResponse {
     }
 }
 
+class SubmitOrderResponse {
+
+    public $success;
+
+    function __construct($success) {
+        $this->success = $success;
+    }
+
+    function __toString() {
+        $response = array("success" => $this->success);
+        return json_encode($response);
+    }
+}
+
 class CheckoutController extends ABCPage {
 
     public $cart;
@@ -60,9 +74,12 @@ class CheckoutController extends ABCPage {
             echo $this->handleApplyDiscount($_GET);
         });
 
+        $router->addRoute('/submit', function() {
+            echo $this->handleSubmitOrder($_GET);
+        });
+
         $router->run($this->matches[1]);
         exit();
-
     }
 
     public function handle() {
@@ -80,11 +97,22 @@ class CheckoutController extends ABCPage {
     public function handleApplyDiscount($request) : ApplyDiscountResponse {
         $response = new ApplyDiscountResponse(false);
         $conn = new DB();
-
+        
+        // TODO: these are duplicated from the constructor, I think.
+        // Shouldn't need to do these.
         $applicator = new DiscountApplicator($this->cart);
-        $applicator->discountCodeString = $request['code'];
         $processor = new TransactionProcessor($this->cart, null);
         $checkoutView = new CheckoutView($this->cart, null);
+
+        // If code isn't set, return an empty view.
+        if (!isset($request['code'])) {
+            $checkoutView->transaction = $this->transaction_template;
+            $response->success = true;
+            $response->view = $checkoutView->getView();
+            return $response;
+        }
+
+        $applicator->discountCodeString = $request['code'];
 
         // If 'artist' is provided, check to see if there is a discount code
         // that matches.
@@ -98,10 +126,18 @@ class CheckoutController extends ABCPage {
             // Match found, set results.
             $response->success = true;
             $processor->discount = $lookupResult->discount;
+
+            // Provide the view with what code we're using
+            $checkoutView->discountCode = $lookupResult->discount->codeString;
+            $checkoutView->artistName = $lookupResult->artistName;
         } else if ($lookupResult->multipleDiscountOptionsAvailable()) {
             // No match found, but artists found.
             $response->success = true;
             $response->possibleArtists = $lookupResult->possibleArtists;
+
+            // Provide the view with the originally specified discount string
+            $checkoutView->discountCode = $lookupResult->providedDiscountString;
+            $checkoutView->possibleArtists = $lookupResult->possibleArtists;
         }
         else {
             // No matches are available.
@@ -111,6 +147,37 @@ class CheckoutController extends ABCPage {
         $checkoutView->transaction = $processor->process();
         $response->view = $checkoutView->getView();
 
+        return $response;
+    }
+
+    public function handleSubmitOrder($request) {
+        $conn = new DB();
+        $response = new SubmitOrderResponse(false);
+        $discount = null; 
+        echo var_dump($request);
+        if (isset($request['code']) && isset($request['artist'])) {
+            $applicator = new DiscountApplicator($this->cart);
+            $applicator->discountCodeString = $request['code'];
+            $applicator->artistName = $request['artist']; 
+
+            $lookupResult = $applicator->performLookup($conn);
+            // The user did not give us a valid discount code / artist combo!
+            if (!$lookupResult->discountMatchFound()) {
+                echo 'no discount';
+                return $response;
+            }
+            $discount = $lookupResult->discount;
+            echo var_dump($discount);
+        }
+        echo 'got here';
+
+        $processor = new TransactionProcessor($this->cart, $discount);
+        $transaction = $processor->process();
+
+        // TODO: add a way to check if transaction was successful
+        $transaction->commit($conn);
+
+        $response->success = true;
         return $response;
     }
 }

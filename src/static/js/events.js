@@ -138,25 +138,70 @@ async function onDeleteDiscountCodeClicked(id) {
     });
 }
 
-function onDiscountCodeApply() {
-    let discountInputBox = $('#discount-code');
-    let discountCode = discountInputBox.val();
+function makeApplyDiscountRequest(data) {
     makeAsyncRequest(
         '/checkout/applydiscount',
-        {
-            'code': discountCode
-        }
+        data
     ).then((response) => {
-        // Reset input box to have no value
         console.log(response);
         response = JSON.parse(response);
-        //discountInputBox.val("");
 
         if (response['success']) {
             updateViewContent(response['view']);
         }
-
     });
+}
+
+function onSubmitOrder() {
+    let appliedDiscount = $('#applied-discount-code').text();
+    let artistName = $('#applied-artist-name').text();
+    let data = {};
+    if (appliedDiscount) {
+        data['code'] = appliedDiscount;
+    }
+    if (artistName) {
+        data['artist'] = artistName;
+    }
+    console.log('discount: ' + appliedDiscount);
+    console.log('artist: ' + artistName);
+
+    makeSubmitOrderRequest(data);
+}
+
+function makeSubmitOrderRequest(data) {
+    makeAsyncRequest(
+        '/checkout/submit', 
+        data
+    ).then((res) => {
+        console.log(res);
+        let response = JSON.parse(res);
+        if (response['success']){
+            // redirect to "thank you" page
+            //window.location.href = 'http://localhost:8000/order_confirmation'
+        } else {
+            alert('Failed to submit order');
+        }
+    });
+}
+
+function onDiscountCodeApply() {
+    let discountInputBox = $('#discount-code');
+    if (discountInputBox.length) {
+        let discountCode = discountInputBox.val();
+        makeApplyDiscountRequest({'code': discountCode}); 
+        return;
+    }
+    let appliedDiscount = $('#applied-discount-code').text();
+    let selectedArtist = $('#discountArtistName').val();
+    makeApplyDiscountRequest({
+        'code': appliedDiscount,
+        'artist': selectedArtist
+    });
+}
+
+function onDiscountCodeRemove() {
+    // Make an empty request to re-load the page
+    makeApplyDiscountRequest({});
 }
 
 function updateViewContent(content) {
