@@ -65,6 +65,9 @@ $code->merchTypeId = 1; // Vinyl
 
 $code->commit($conn);
 
+$code->codeString = 'SKADREAM20';
+$code->commit($conn);
+
 $type = new MerchType();
 $type->merchTypeString = 'Vinyl';
 $type->commit($conn);
