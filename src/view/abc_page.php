@@ -38,16 +38,18 @@ class ABCPageView {
     <body>
         <div class='grid-container'>
             <div class='nav'>
-                <ul>
-                    <li><?php echo ABCPageView::renderLink('Home', '/'); ?></li>
-                    <li><?php echo ABCPageView::renderLink('Merch', '/'); ?><li>
-                    <li class="nav-right">
-                        <?php echo ABCPageView::getLoginOrLogOutLink($loggedIn)?>
-                    </li>
-                    <li class="nav-right">
-                        <?php echo ABCPageView::renderLink('Cart', '/checkout'); ?>
-                    </li>
-                </ul>
+                <div class='links'>
+                    <ul>
+                        <li><?php echo ABCPageView::renderLink('Home', '/'); ?></li>
+                        <li><?php echo ABCPageView::renderLink('Merch', '/'); ?><li>
+                        <li class="nav-right">
+                            <?php echo ABCPageView::getLoginOrLogOutLink($loggedIn)?>
+                        </li>
+                        <li class="nav-right">
+                            <?php echo ABCPageView::renderLink('Cart', '/checkout'); ?>
+                        </li>
+                    </ul>
+                </div>
             </div>
             <div class='view'>
                 <h2><?php echo $headerText; ?></h2>

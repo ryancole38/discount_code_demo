@@ -4,6 +4,7 @@ class Router {
 
     function __construct() {
         $this->routes = [];
+        $this->error_handler = null;
     }
 
     /* Add a route to the router.
@@ -15,6 +16,11 @@ class Router {
             'expression' => '#^'.$expression.'$#',
             'function' => $function
         );
+    }
+
+    // If none of the other routes match, run this handler
+    public function setErrorHandler($expression) {
+        $this->error_handler = $expression;
     }
 
     /* Route the requested URI to the provided routes */
@@ -38,9 +44,11 @@ class Router {
                 // Pass URL args, and then regex matched params
                 call_user_func_array($route['function'], $function_args);
 
-                break;
+                return;
             }
         } 
+
+        call_user_func($this->error_handler);
     }
 
 }

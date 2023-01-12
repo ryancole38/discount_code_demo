@@ -7,6 +7,8 @@ require_once('./controller/discount_creation.php');
 require_once('./controller/checkout.php');
 require_once('./controller/order_confirmation.php');
 require_once('./controller/login.php');
+require_once('./controller/home.php');
+require_once('./controller/error.php');
 
 $router = new Router();
 
@@ -43,6 +45,16 @@ $router->addRoute('/order_confirmation', function() {
 $router->addRoute('/login', function($args) {
     $page = new LoginController();
     $page->handle($args);
+});
+
+$router->addRoute('/', function() {
+    $page = new HomeController();
+    $page->handle();
+});
+
+$router->setErrorHandler(function() {
+    $page = new ErrorController();
+    $page->handle();
 });
 
 $router->run();
