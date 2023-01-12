@@ -7,7 +7,7 @@ class LoginView {
                 ?>
         <div id='login-container'>
                 <h2>Log In</h2></br>
-                <p class="error"><?php echo $error; ?></p>
+                <p style="color: red;"><?php echo $error; ?></p>
                 <form action="/login" method="post">
                 <input class="input-rounded" type="text" name="username" placeholder="Username"/></br></br>
                 <input class="input-rounded" type="password" name="password" placeholder="Password"/></br></br>

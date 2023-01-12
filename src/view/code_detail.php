@@ -1,5 +1,6 @@
 <?php
 require_once('./view/discount_creation.php');
+require_once('./view/abc_page.php');
 class CodeDetailView extends DiscountCreationView {
 
     function __construct($discountCode, $artistId, $merchTypes){
@@ -9,7 +10,9 @@ class CodeDetailView extends DiscountCreationView {
     }
 
     function getView() {
-        return parent::getView();
+        $form = parent::getView();
+        $backButton = ABCPageView::renderLink('<< Back', '/discount_codes/admin');
+        return $form . '</br>' . $backButton;
     }
 }
 ?>

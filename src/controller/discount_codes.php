@@ -10,13 +10,11 @@
 
             $this->matches = $matches;
 
-            $this->requireLogin();
-
-            $artistId = $this->getLoggedInUserId();
-
             $conn = new DB();
-            $this->artist = User::getById($conn, $artistId); 
-            // TODO: handle case where artist does not exist.
+            $this->artist = $this->requireArtistLogin($conn);
+
+            $artistId = $this->artist->id;
+
             $this->discountCodes = DiscountCode::getAllByArtistId($conn, $artistId);
         }
 

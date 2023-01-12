@@ -101,37 +101,25 @@ class User {
         if (!$statement) {
             return null;
         }
-        echo $username;
 
         $bind_success = $statement->bindValue(':username', $username, SQLITE3_TEXT);
         if (!$bind_success) {
-            echo 'ERROR: Failed to bind value username??';
             return null;
         }
 
         $result = $statement->execute();
 
         if (!$result) {
-            echo 'ERROR: Failed to execute select query';
             return null;
         }
-
-        echo var_dump($result);
 
         $row = $result->fetchArray(SQLITE3_ASSOC);
 
-        echo var_dump($statement);
-
         if (!$row) {
-            echo 'ERROR: Failed to retrieve user';
-            echo $conn->lastErrorMsg();
-            echo $row;
             return null;
         }
 
-        echo var_dump($row);
-
-        // we only fetch the first. if more than one exist, that's not my problem.
+        // we only fetch the first. if more than one exist, there are bigger problems
         return User::constructFromRow($row); 
 
     }

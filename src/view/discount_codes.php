@@ -7,11 +7,10 @@ function getView($codes) {
     <?php 
     
         echo renderCodesAsTable($codes);
-        echo ABCPageView::renderLink(
-            'Create Discount Code', 
-            '/discount_codes/create'
-        );
+
     ?>
+    </br>
+    <a class="button-small" href="http://localhost:8000/discount_codes/create"> Create Discount Code </a>
 
     <?php
     return ob_get_clean();
@@ -20,19 +19,19 @@ function getView($codes) {
 function renderCodesAsTable($codes) {
     ob_start();
     ?>
-    <table id='discount-code-table'>
-    <th>
-        <td>Discount Code</td>
-        <td>Promo Message</td>
-        <td>Discount Amount</td>
-        <td>Active</td>
-        <td></td>
-    </th>
+    <table class='table' id='discount-code-table'>
+    <tr>
+        <th>Discount Code</th>
+        <th>Promo Message</th>
+        <th>Discount Amount</th>
+        <th>Active</th>
+        <th></th>
+    </tr>
     <?php
     foreach ($codes as $code) {
         printf(
             '<tr id=\'%s\'>
-                <td><a href=\'%s\'>%s</a></td>
+                <td><a class="discount-name" href=\'%s\'>%s</a></td>
                 <td>%s</td>
                 <td>%s</td>
                 <td>%s</td>

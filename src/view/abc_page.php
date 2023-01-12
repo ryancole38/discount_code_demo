@@ -25,7 +25,7 @@ class ABCPageView {
         return ABCPageView::renderLink('Log out', '/login?action=logout');
     }
 
-    static function render($title, $headerText, $content, $loggedIn, $backLink='') {
+    static function render($title, $headerText, $content, $loggedIn, $isArtist) {
         ob_start();
         ?>
 
@@ -48,6 +48,14 @@ class ABCPageView {
                         <li class="nav-right">
                             <?php echo ABCPageView::renderLink('Cart', '/checkout'); ?>
                         </li>
+                        <?php if ($isArtist) {
+                            echo '<li class="nav-right">' . 
+                            ABCPageView::renderLink(
+                                'Discount Codes', 
+                                '/discount_codes/admin'
+                            ) . '</li>';
+                        }
+                        ?>
                     </ul>
                 </div>
             </div>

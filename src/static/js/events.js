@@ -49,7 +49,7 @@ function onSubmitDiscountCodeChanges() {
             '/discount_codes/create/creatediscount',
             discountCode     
         ).then((res) => {
-            console.log(res);
+            window.location.href = 'http://localhost:8000/discount_codes/admin';
         });
     }
 
@@ -145,7 +145,7 @@ function makeApplyDiscountRequest(data) {
     ).then((response) => {
         console.log(response);
         response = JSON.parse(response);
-
+        setError('discount-code');
         if (response['success']) {
             updateViewContent(response['view']);
         }
@@ -162,8 +162,6 @@ function onSubmitOrder() {
     if (artistName) {
         data['artist'] = artistName;
     }
-    console.log('discount: ' + appliedDiscount);
-    console.log('artist: ' + artistName);
 
     makeSubmitOrderRequest(data);
 }

@@ -76,16 +76,26 @@ class DiscountApplicator {
     }
 
     // Get list of artist names that are in the cart and have an identical 
-    // discount code 
+    // discount code. This is an expensive operation. 
     private function getArtistsInCartWithDiscountCodeMatching($conn, $discountCode) {
         // Get IDs of artists in cart
         $artistsInCart = $this->getArtistsInCart();
         $matchingDiscounts = ArtistDiscount::getAllByCode($conn, $discountCode);
 
+        // Filter so that we only have discounts that can be applied.
+        // This checks the transaction count.
+        $applicableDiscounts = array_filter(
+            $matchingDiscounts,
+            function($artistDiscount) use ($conn) {
+                $discount = DiscountCode::getById($conn, $artistDiscount->discountId);
+                return $this->discountCanBeApplied($conn, $discount);
+            }
+        );
+
         // Dear PHP, why is the argument ordering backwards between
         // array_filter and array_map?
         $artistsInCartWithMatchingDiscount = array_filter(
-            $matchingDiscounts,
+            $applicableDiscounts,
             function($artistDiscount) use ($artistsInCart){
                 return in_array($artistDiscount->artistId, $artistsInCart);
             }
@@ -99,7 +109,8 @@ class DiscountApplicator {
             $artistsInCartWithMatchingDiscount
         );
 
-        return $artists;
+        // I'm not sure why, but it was screwing up the indices. 
+        return array_values($artists);
     }
 
     // Get list of artist IDs of the artists in this cart

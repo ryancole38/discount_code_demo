@@ -74,6 +74,16 @@ body {
     font-size: 20px;
 }
 
+.button-small {
+    display: inline-block;
+    border: solid 1px black;
+    color: black;
+    text-decoration: none;
+    border-radius: 15px;
+    padding: 10px 10px;
+    font-size: 15px;
+}
+
 .input-rounded {
     border: solid 1px black;
     border-radius: 30px;
@@ -82,7 +92,7 @@ body {
 }
 
 .error {
-    color: red;
+    border: 2px solid red;
 }
 
 #login-container {
@@ -126,6 +136,16 @@ body {
 
 .checkout .item .price {
     grid-area: price;
+}
+
+table, th, td{
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+
+.discount-name {
+    color: black;
+    font-weight: bold;
 }
 
 

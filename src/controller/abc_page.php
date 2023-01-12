@@ -20,8 +20,18 @@ abstract class ABCPage {
         $id = $this->getLoggedInUserId();
         $user = User::getById($conn, $id);
         if (!$user->isArtist) {
-            $this->redirectTo('/login');
+            $this->redirectTo('/error');
         }
+        return $user;
+    }
+
+    public function getLoggedInUser($conn) {
+        $id = $this->getLoggedInUserId();
+        $user = null;
+        if ($id > 0) {
+            $user = User::getById($conn, $id);
+        }
+        return $user;
     }
 
     public function isLoggedIn() {
@@ -57,9 +67,15 @@ abstract class ABCPage {
             strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
     }
 
+    // TODO: remove backLink option. It's not used anymore.
     public function renderBasePage($title, $headerText, $content, $backLink) {
         require_once('./view/abc_page.php');
-        echo ABCPageView::render($title, $headerText, $content, $this->isLoggedIn(), $backLink);
+        // I hate to construct a DB instance. This needs to be refactored.
+        // This function and its arguments are unwieldy.
+        $conn = new DB();
+        $loggedInUser = $this->getLoggedInUser($conn);
+        $isArtist = !empty($loggedInUser) ? $loggedInUser->isArtist : false;
+        echo ABCPageView::render($title, $headerText, $content, $this->isLoggedIn(), $isArtist);
     }
 
 }
